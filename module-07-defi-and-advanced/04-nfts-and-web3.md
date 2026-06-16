@@ -1,6 +1,160 @@
-# NFTs and Web3
+# Lesson 07.04: NFTs and Web3 — Ownership in the Digital Age
 
-Non-Fungible Tokens and the broader concept of Web3 represent one of the most discussed — and most misunderstood — evolutions in blockchain technology. Between 2021 and 2022, NFTs generated billions of dollars in trading volume and attracted mainstream media attention, celebrity endorsements, and serious institutional interest. They also attracted speculation, fraud, and intense skepticism. Cutting through the hype requires understanding the underlying mechanics, the genuine use cases, and the honest valuation challenges these assets present.
+## What Are NFTs?
+
+**NFTs (Non-Fungible Tokens)** are unique digital tokens recorded on a blockchain that certify ownership of a specific digital (or physical) asset. Unlike cryptocurrencies such as BTC or ETH, which are interchangeable, each NFT is one-of-a-kind and cannot be exchanged on a 1-for-1 basis with another NFT.
+
+The word "non-fungible" is the key concept. Understanding it requires comparing it to something that is fungible.
+
+---
+
+## Fungible vs. Non-Fungible: The Core Distinction
+
+**Fungible:** Every unit is identical and interchangeable.
+- 1 BTC = 1 BTC. Any Bitcoin in your wallet is worth the same and functions identically to any other Bitcoin.
+- A $20 bill = another $20 bill. You can swap them freely without caring which specific bill you have.
+
+**Non-Fungible:** Every unit is unique and not interchangeable.
+- **CryptoPunk #7804** is one of the 10,000 CryptoPunks, with a specific combination of attributes (pipe, cap, shades). It has sold for millions and is distinctly not equal to CryptoPunk #1, which has entirely different attributes.
+- A signed first-edition book is non-fungible. Even if two copies of the same book exist, one author's signature makes them unequal.
+
+NFTs bring verifiable, unique ownership to the digital world. Before NFTs, there was no cryptographically secure way to assert "I own this specific digital file and there is only one authorized original."
+
+---
+
+## How NFTs Work: ERC-721 Standard
+
+Most NFTs on Ethereum follow the **ERC-721 standard** — a smart contract interface that defines the rules for creating and transferring unique tokens.
+
+Each ERC-721 token has:
+- A **unique token ID** (e.g., token #7804)
+- An **owner address** (the current holder's Ethereum address)
+- A **metadata URI** pointing to a JSON file containing the NFT's name, description, and image URL
+
+The blockchain records every ownership transfer, creating a permanent, public provenance trail. You can verify the entire ownership history of any NFT from its creation to the present moment.
+
+**ERC-1155** is a newer standard supporting both fungible and non-fungible tokens in a single contract, commonly used in gaming where some items are unique (a legendary sword) and others have limited supply (100 health potions).
+
+---
+
+## NFT Use Cases Beyond Digital Art
+
+While digital art dominated early NFT narratives, the technology has far broader applications:
+
+### Digital Art and Collectibles
+Digital artists mint their work as NFTs, enabling proof of original ownership and automatic royalties (typically 5-10%) on secondary sales via smart contracts.
+
+### Gaming Items
+In-game items as NFTs are player-owned assets that exist outside the game developer's servers. Games like Axie Infinity (Ronin network) pioneered this model. If the game shuts down, the NFTs remain in your wallet — unlike traditional in-game items that vanish with the game.
+
+### Music Rights
+Artists like Kings of Leon have released albums as NFTs, granting holders access to exclusive experiences or a share of streaming royalties. NFTs can replace or supplement complex traditional music rights management.
+
+### Real-World Asset Tokenization
+Physical assets — real estate deeds, luxury goods, fine art — can be tokenized as NFTs, enabling fractional ownership, easier transfer, and instant secondary market liquidity. This is an area of significant institutional interest.
+
+### Identity and Credentials
+Academic degrees, professional certifications, and event tickets issued as NFTs are verifiable, unforgeable, and transferable. **POAP (Proof of Attendance Protocol)** NFTs are already used to record event participation on-chain.
+
+---
+
+## NFT Market History: Boom, Bust, and Relevance
+
+### The 2021 Boom
+
+- **March 2021:** Digital artist Beeple sells "Everydays: The First 5000 Days" at Christie's for **$69.3 million** — the third-highest price ever achieved by a living artist at the time.
+- **Bored Ape Yacht Club (BAYC)** launches in April 2021 at 0.08 ETH (~$190). Floor price eventually exceeded 100 ETH (~$350,000+). Owners included Justin Bieber, Eminem, and Paris Hilton.
+- Total NFT market trading volume reached approximately **$25 billion** in 2021.
+
+### The 2022-2023 Bust
+
+The NFT market crashed alongside the broader crypto bear market. Many collections that sold for tens of thousands of dollars saw floor prices drop 90-99%. Wash trading — artificially inflating apparent volume by trading with yourself — was exposed as rampant across platforms.
+
+### Current Landscape
+
+Focus has shifted toward utility-based NFTs (gaming assets, credentials, real-world asset tokenization) rather than pure speculative art. Trading volume has consolidated on **Blur** (professional traders) and **OpenSea** (retail users).
+
+---
+
+## How to Value NFTs
+
+NFTs lack fundamental metrics like stocks (earnings, cash flows, P/E ratios). Valuation is largely subjective, driven by:
+
+- **Rarity:** How uncommon are the specific trait combinations within a collection? Rarity scoring tools rank NFTs by trait frequency. A CryptoPunk with multiple rare attributes commands a premium.
+- **Utility:** Does the NFT provide tangible benefits — exclusive access, governance rights, in-game power, revenue share?
+- **Community strength:** Active Discord, engaged Twitter following, and developer momentum sustain demand. A dead community precedes floor price collapse.
+- **Creator reputation:** A credible, established artist or team commands a premium. Anonymous creators with no track record carry higher risk.
+- **Provenance:** Celebrity ownership history (the Eminem or Justin Bieber Bored Ape) adds a premium in collector markets.
+- **Collection size:** Smaller collections of higher quality often hold value better than large 10,000-item PFP (profile picture) collections in a down market.
+
+**The honest reality:** NFT valuation is highly speculative. The vast majority of NFT collections bought at peak prices in 2021 are now essentially worthless. Treat most NFT purchases as speculative bets on cultural relevance, not investments with predictable returns.
+
+---
+
+## Web3: The User-Owned Internet Vision
+
+**Web3** is a framework for a new phase of the internet where users own their data, identity, and digital assets, enabled by blockchain technology.
+
+### The Evolution of the Web
+
+- **Web1 (1991-2004):** Read-only. Static pages, no user contribution.
+- **Web2 (2004-present):** Read-write. Social media and user-generated content — but your data is owned by corporations (Facebook, Google). The user is the product.
+- **Web3 (emerging):** Read-write-own. Users control their own data via cryptographic keys. Platforms are governed by token holders, not corporations.
+
+### Key Web3 Concepts
+
+- **Self-sovereign identity:** Your identity is tied to your wallet address, not a corporate username database. You control access.
+- **Data ownership:** Instead of platforms harvesting your data, you own it and choose who may access it.
+- **Tokenized ownership:** Contributions to protocols and communities are compensated with tokens that carry real economic value and governance rights.
+
+---
+
+## DApps: Decentralized Applications
+
+**DApps (Decentralized Applications)** are applications whose core logic runs on a blockchain via smart contracts rather than on corporate servers. The front-end may still be a traditional website, but it connects to the blockchain for all transactions and state changes.
+
+**How a DApp connects to your wallet:**
+1. You visit a DApp (e.g., app.uniswap.org)
+2. The site prompts you to connect your **MetaMask** or other Web3 wallet
+3. MetaMask injects your wallet address into the site
+4. When you execute a transaction, MetaMask signs it with your private key locally
+5. The signed transaction is broadcast to the Ethereum network and executed by the smart contract
+
+Your private key never leaves your device. The DApp cannot access your funds — it can only propose transactions that you must explicitly approve in MetaMask.
+
+---
+
+## Risks in the NFT and Web3 Space
+
+- **Market illiquidity:** You may be unable to sell an NFT quickly at a fair price. Thin markets mean wide bid-ask spreads and potentially weeks to find a buyer.
+- **Copyright ambiguity:** Buying an NFT does not automatically convey copyright over the underlying artwork in most jurisdictions. Legal frameworks are still developing.
+- **Wash trading:** Sellers trade with themselves to create the appearance of demand. Volume statistics can be deeply misleading.
+- **Phishing and wallet drainers:** Malicious smart contracts disguised as legitimate NFT mints or airdrops can drain your entire wallet if you approve them. Never sign transactions you don't understand fully.
+- **Speculative failure rate:** The vast majority of NFT collections lose value over time. Only the top collections maintain meaningful long-term floors.
+
+---
+
+## Getting Started: Primary and Secondary Markets
+
+- **OpenSea (opensea.io):** The original NFT marketplace. Largest selection, user-friendly, supports Ethereum, Polygon, and other chains.
+- **Blur (blur.io):** Professional NFT trading platform favored by active traders. Aggregates listings across marketplaces, enables portfolio-wide bidding, offers BLUR token rewards.
+- **Magic Eden:** Dominant on Solana, expanding multi-chain. Lower fees and faster transactions for Solana-based NFTs.
+
+**For beginners:** Start by exploring without buying. Connect MetaMask to OpenSea, browse collections, and study which attributes drive rarity premiums before committing capital.
+
+---
+
+> ## Key Takeaways
+>
+> - **NFTs are non-fungible tokens** — unique on-chain ownership certificates. CryptoPunk #7804 ≠ CryptoPunk #1; 1 BTC = 1 BTC (fungible).
+> - **ERC-721** is the Ethereum standard for NFTs: each token has a unique ID, owner address, and permanent transfer history on-chain.
+> - NFT use cases extend well beyond art: **gaming items, music rights, real estate tokenization, digital identity, and event credentials** all benefit from NFT infrastructure.
+> - The 2021 boom featured Beeple's **$69.3M Christie's sale** and Bored Apes reaching 100+ ETH floors; the 2022 crash erased most NFT value.
+> - NFT valuation depends on **rarity, utility, community strength, creator reputation, and provenance** — there are no cash flow fundamentals.
+> - **Web3** envisions user-owned internet: self-sovereign identity, data ownership, and tokenized community participation replacing Web2's corporate data extraction model.
+> - **DApps** connect to MetaMask; your private key never leaves your device — you must explicitly approve every transaction.
+> - Core risks: illiquidity, copyright ambiguity, wash trading, phishing/wallet drainers, and the very high speculative failure rate of most collections.
+> - Start on **OpenSea** (retail, broad selection) or **Blur** (professional trading with volume incentives).
 
 ## What Is a Non-Fungible Token?
 
