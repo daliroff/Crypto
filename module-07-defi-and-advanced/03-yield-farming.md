@@ -1,90 +1,174 @@
-# Yield Farming
+# Lesson 07.03: Yield Farming — Putting Your Crypto to Work
 
-Yield farming is the practice of putting crypto assets to work across DeFi protocols to earn the highest possible return. The term evokes images of planting capital and harvesting profits — and like agriculture, it involves real labor, real risk of crop failure, and seasons of abundance followed by drought. At its peak in 2020 and 2021, yield farming offered returns that dwarfed anything in traditional finance. Understanding how those yields are generated — and why many of them vanish quickly — is essential before committing capital.
+## What Is Yield Farming?
 
-## How Yield Farming Works
+**Yield farming** (also called liquidity mining) is the practice of deploying crypto assets across DeFi protocols to earn rewards — interest, trading fees, and/or governance tokens — maximizing the return on your capital.
 
-At its simplest, yield farming stacks multiple sources of income on top of each other:
+The term "farming" is apt: you plant your capital in a protocol and harvest rewards over time. Like agriculture, the yields vary dramatically by season, the soil (protocol quality) matters enormously, and some crops fail entirely.
 
-**1. Liquidity provision fees.** When you deposit assets into an AMM pool, every swap that routes through your pool pays you a fraction of the trading fee. This is the baseline layer of income.
-
-**2. Governance token rewards.** Many DeFi protocols distribute their own native tokens to users who supply liquidity or lend assets. These "liquidity mining" rewards were designed to bootstrap adoption by incentivizing early participation. Protocols like Compound, Uniswap, and Curve have all distributed governance tokens this way. The dollar value of these token emissions can dwarf the underlying fee income — but only if the token holds its value.
-
-**3. Staking and compounding.** Some protocols reward you for staking LP tokens in a "farm" contract on top of your pool position. You can then take those rewards, sell them for more of the base assets, re-deposit, and compound your position. Automated vaults (like those built on Yearn or Beefy Finance) do this compounding on your behalf, often dozens of times per day.
-
-The farmer who moves capital fluidly between these layers — chasing the highest risk-adjusted return — is the archetypal "yield farmer."
-
-## APY vs APR: Understanding the Numbers
-
-**APR (Annual Percentage Rate)** is the simple annualized return without compounding. If a pool pays 1% per month in fees, its APR is 12%.
-
-**APY (Annual Percentage Yield)** accounts for compounding. If you reinvest that 1% monthly, at year-end you have:
-
-```
-(1 + 0.01)^12 - 1 = 12.68% APY
-```
-
-The more frequently you compound, the higher the APY relative to APR. Daily compounding of a 60% APR yields approximately:
-
-```
-(1 + 0.60/365)^365 - 1 ≈ 82% APY
-```
-
-DeFi protocols almost always advertise APY, not APR. Automated vaults compound continuously and can show legitimately high APYs. The danger is that many platforms display APY figures calculated from a snapshot of the current token emission rate, which changes daily or even hourly as more capital enters the farm, diluting everyone's share of the rewards.
-
-## The Risks of Yield Farming
-
-**Smart contract risk.** Every additional protocol you interact with adds another potential point of failure. A farm that routes through four contracts — the AMM, the LP staking contract, the reward distributor, and a compounder vault — is exposed to four independent sets of code. A single exploit can drain all deposited funds with no recourse.
-
-**Token inflation and sell pressure.** High APYs denominated in governance tokens are almost always self-defeating. As the protocol mints tokens to pay farmers, early recipients sell for profit, increasing sell pressure. The token price falls, reducing the dollar value of future rewards. This cycle — high APY attracts capital, emissions dilute token price, APY falls in dollar terms, capital rotates out — is so predictable it has a name: "mercenary capital." Many farming tokens have declined 90%+ from their launch prices.
-
-**Impermanent loss.** As covered in the liquidity pools module, IL can erode principal faster than fee income replenishes it, particularly in volatile asset pairs.
-
-**Liquidation risk.** Some advanced farming strategies borrow assets to lever up positions. If collateral values drop, these positions can be liquidated, wiping out the equity.
-
-**Rug pulls and exit scams.** Anonymous teams can deploy "farm" contracts with hidden admin keys that allow them to drain deposited funds. Projects that copy-paste code, launch without an audit, and promise 1,000%+ APYs are extremely high-risk.
-
-## Realistic vs. Advertised Yields
-
-A farm advertising 500% APY will almost never deliver 500% for more than a few days or weeks. Advertised yield reflects the emission rate at a single point in time; it collapses as:
-
-- More capital enters, reducing each farmer's share of fixed emissions.
-- The reward token depreciates under sell pressure.
-- Emission schedules step down by design.
-
-Sustainable, realistic yield from established protocols tends to look more like:
-- Stablecoin lending on Aave or Compound: 3–8% APY depending on market conditions.
-- Blue-chip AMM pools (ETH/USDC, WBTC/ETH) on Uniswap v3: 5–20% APY in active ranges.
-- Stablecoin AMM pools (Curve 3pool): 2–6% APY.
-
-Anything above 20% APY in a stablecoin pool or above 50% in a volatile pair warrants serious scrutiny.
-
-## Safe vs. Risky Farms: A Checklist
-
-**Lower risk indicators:**
-- Protocol has been live for 12+ months without a major exploit.
-- Code is audited by a reputable firm (Trail of Bits, OpenZeppelin, Certik with caveats).
-- Rewards denominated in established assets or blue-chip tokens.
-- Team is doxxed (publicly identified) or protocol is fully decentralized.
-- Large TVL signals that many sophisticated users have assessed and accepted the risk.
-- Rewards can be claimed and sold independently without lock-up.
-
-**Higher risk indicators:**
-- Launched less than 30 days ago.
-- Unaudited or self-audited contracts.
-- APY above 500%.
-- Anonymous team with no track record.
-- TVL under $1M (thin liquidity, easy to drain).
-- Reward token has no utility beyond farming.
-- Requires locking funds for 6+ months with no exit option.
+At its peak in the **DeFi Summer of 2020** and through 2021, yield farming offered APYs in the hundreds or thousands of percent. Those eye-watering numbers attracted billions of dollars of capital — and also significant fraud, exploitation, and collapse. Today, the market is more mature: yields are lower, but many protocols generate genuine, sustainable returns.
 
 ---
 
-## Key Takeaways
+## How Yield Farming Works: The Full Loop
 
-- Yield farming stacks fee income, governance token rewards, and compounding to maximize returns on deposited assets.
-- APY accounts for compounding and is almost always higher than APR; understand which figure a platform is displaying.
-- Advertised APYs collapse quickly as more capital enters a farm and as reward token prices fall — sustainable yields on reputable protocols are typically 3–20%.
-- Core risks are smart contract exploits, token inflation eroding reward value, impermanent loss, and outright rug pulls.
-- Before entering a farm, assess: audit status, protocol age, team transparency, TVL, and whether the yield source is sustainable.
-- The safest yield farming starts with established protocols, blue-chip assets, and yield sources grounded in real fee income rather than speculative token emissions.
+A typical yield farming sequence:
+
+1. **Deposit assets** into a DeFi protocol (e.g., deposit ETH + USDC into Uniswap)
+2. **Receive LP tokens** representing your share of the liquidity pool
+3. **Stake LP tokens** in the protocol's farm or staking contract
+4. **Earn reward tokens** — typically the protocol's governance token (e.g., UNI, SUSHI, CRV)
+5. **Claim and reinvest** (compound) rewards, or sell them for stablecoins
+
+The yield has two components:
+- **Trading fees** from the underlying liquidity pool (sustainable)
+- **Token emissions** — the protocol minting and distributing new governance tokens to incentivize liquidity (inflationary, often not sustainable)
+
+The distinction between these two yield sources is critical to understanding whether a yield is real or illusory.
+
+---
+
+## APY vs. APR: Know the Difference
+
+- **APR (Annual Percentage Rate):** Simple interest, without compounding. If a farm pays 50% APR, you earn 50% of your principal over one year, assuming no reinvestment.
+- **APY (Annual Percentage Yield):** Includes the effect of compounding. If you reinvest your rewards daily, a 50% APR becomes approximately 64.8% APY.
+
+The formula to convert APR to APY:
+```
+APY = (1 + APR/n)^n - 1
+```
+Where n = number of compounding periods per year.
+
+**Farming dashboards typically display APY** because it looks higher. Always check whether the displayed number assumes manual or automatic compounding, and over what time period it was calculated. APYs in DeFi can change dramatically within hours as new farmers enter or exit.
+
+---
+
+## Real Yield vs. Token Emissions
+
+This is one of the most important distinctions in DeFi yield farming:
+
+### Token Emission Yield (Often Unsustainable)
+
+The protocol mints new governance tokens and distributes them to LPs as rewards. This creates buy-side demand for the token (LPs receiving it may sell) but also increases supply. If more people are selling the reward token than buying it, its price falls — and with it, your APY in dollar terms.
+
+**The Ponzi dynamic:** High emission APYs attract capital → more capital dilutes each LP's reward share → APY falls → capital leaves → token price falls → APY collapses. Many farms of 2020-2021 followed exactly this trajectory.
+
+### Real Yield (Sustainable)
+
+Real yield comes from actual protocol revenue — trading fees, borrowing interest, liquidation fees — distributed to stakers/LPs. This is sustainable because it's backed by genuine economic activity.
+
+**Examples of real yield sources:**
+- Uniswap V3 trading fees (0.05%, 0.3%, or 1% per swap depending on pool tier)
+- Aave's lending spread (borrowers pay more than depositors earn; the difference is protocol revenue)
+- GMX's perpetual trading fees distributed to GLP holders
+
+When evaluating a yield farm, ask: "If the reward token's price went to zero, would there still be any yield?" If no, the yield is purely emission-based.
+
+---
+
+## Popular Yield Farming Strategies
+
+### 1. Stablecoin Pairs — Conservative
+
+- **Assets:** USDC/USDT, DAI/USDC, FRAX/USDC
+- **Protocol:** Curve Finance, Uniswap V3, Aave
+- **Typical APY:** 3-15%
+- **Risks:** Near-zero impermanent loss, smart contract risk, stablecoin depeg risk
+- **Best for:** Capital preservation with modest yield
+
+### 2. Blue-Chip Volatile Pairs — Moderate
+
+- **Assets:** ETH/USDC, BTC/ETH, SOL/USDC
+- **Protocol:** Uniswap V3, Orca (Solana), Trader Joe (Avalanche)
+- **Typical APY:** 10-40% in fee-rich pools
+- **Risks:** Significant impermanent loss if prices diverge sharply
+- **Best for:** Traders who would hold the assets anyway and want fees on top
+
+### 3. Correlated Asset Pairs — Efficient
+
+- **Assets:** ETH/stETH, BTC/WBTC, USDC/DAI
+- **Protocol:** Curve, Balancer
+- **Typical APY:** 5-20% with minimal IL
+- **Risks:** Depegging risk (stETH temporarily depegged in 2022), smart contract risk
+- **Best for:** Maximizing yield while minimizing IL
+
+### 4. New Protocol Incentive Farms — Aggressive
+
+- **Assets:** New protocol's native token paired with ETH or USDC
+- **Typical APY:** 100-1,000%+ (emission-based)
+- **Risks:** Rug pull, token price collapse, IL, smart contract exploit
+- **Best for:** High-risk/high-reward traders who can exit quickly
+
+---
+
+## Risks of Yield Farming
+
+### 1. Smart Contract Risk
+
+Every DeFi protocol is only as safe as its code. Even audited contracts have been exploited. When you deposit funds into a farm, you trust that smart contract completely. Diversify across multiple protocols and never put more than you can afford to lose into a single farm.
+
+### 2. Impermanent Loss
+
+As covered in the previous lesson, providing liquidity to volatile pairs means your position rebalances as prices move. A 5x return on a token you're farming can be largely offset by the IL you suffered as the pool rebalanced.
+
+### 3. Token Price Collapse
+
+Your reward tokens may be worthless by the time you claim them. If a protocol distributes its governance token as yield and that token falls 90%, your high APY meant nothing. This has happened to hundreds of yield farming projects.
+
+### 4. Liquidity Risk (Can't Exit)
+
+Some pools have very low TVL. When you want to withdraw, there may be high slippage or, in extreme cases, insufficient liquidity to exit your position at a reasonable price. Always check pool depth before entering.
+
+### 5. Rug Pull
+
+The most malicious risk: developers drain the protocol's treasury. Signs of a potential rug:
+- Anonymous, unverified team
+- No audit or very recent audit from an unknown firm
+- Extremely high APY with no clear yield source
+- Admin keys that can upgrade/drain contracts without timelock
+- Large developer token allocation that vests quickly
+
+---
+
+## How to Evaluate a Yield Farm
+
+Before committing capital, run through this checklist:
+
+- **Audit status:** Has the code been audited by a reputable firm (Trail of Bits, Certik, OpenZeppelin)? Was the audit recent and complete?
+- **Team credibility:** Is the team doxxed (publicly identifiable)? Do they have a track record?
+- **TVL trend:** Is TVL growing steadily or did it spike and start falling? Falling TVL often precedes protocol death.
+- **Yield source:** Is the APY from trading fees (real yield) or token emissions? If emissions, what's the token's emission schedule and circulating supply impact?
+- **Token distribution:** Are a large percentage of tokens reserved for insiders with short vest schedules? That's a sell pressure time bomb.
+- **Timelock on admin functions:** Can developers upgrade or drain contracts immediately, or is there a 24-48 hour timelock that gives users time to exit?
+- **Age of protocol:** Older protocols have survived longer and are more battle-tested. Brand-new protocols carry higher risk.
+
+---
+
+## Auto-Compounders: Maximizing Returns Passively
+
+**Auto-compounders** automatically reinvest (compound) your yield farming rewards at regular intervals, converting your reward tokens back into the farming position without manual intervention.
+
+The power of compounding: a 50% APR compounded daily becomes approximately 64.8% APY. Auto-compounders capture this.
+
+**Popular auto-compounders:**
+- **Beefy Finance:** Multi-chain auto-compounder, works across Arbitrum, BNB Chain, Polygon, Avalanche, and more
+- **Yearn Finance:** Pioneer of automated yield strategies on Ethereum, uses complex "vault" strategies
+- **Autofarm:** Cross-chain optimizer
+
+**Trade-offs of auto-compounders:**
+- Additional smart contract layer (more risk)
+- Auto-compounders charge performance fees (typically 3-10% of yield)
+- Compounding creates taxable events in many jurisdictions
+
+---
+
+> ## Key Takeaways
+>
+> - **Yield farming** means deploying capital in DeFi protocols to earn trading fees, interest, and governance token rewards.
+> - The typical loop: **deposit assets → receive LP tokens → stake LP tokens → earn reward tokens → compound or sell rewards**.
+> - **APY includes compounding**; APR does not. A 50% APR compounded daily ≈ 64.8% APY.
+> - **Real yield** (from trading fees, borrowing interest) is sustainable; **token emission yield** is inflationary and often collapses as the reward token's price falls.
+> - Conservative strategy: stablecoin pairs (near-zero IL, 3-15% APY). Aggressive strategy: new protocol farms (100%+ APY, high rug pull and token collapse risk).
+> - The five core risks: smart contract exploit, impermanent loss, reward token price collapse, liquidity risk, and rug pulls.
+> - Evaluate farms by: audit status, team credibility, TVL trend, yield source sustainability, token distribution, and whether admin functions have a timelock.
+> - **Auto-compounders** (Beefy Finance, Yearn) reinvest rewards automatically, capturing compounding returns — at the cost of additional smart contract risk and a performance fee.
