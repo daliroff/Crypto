@@ -1,6 +1,185 @@
-# Backtesting Trading Strategies
+# Lesson 08.02: Backtesting Basics — Validating Strategies Before You Risk Real Money
 
-Before committing real capital to a trading strategy, the natural question is: would this strategy have made money in the past? Backtesting is the process of applying a trading strategy's rules to historical market data to simulate how it would have performed. Done well, backtesting can reveal whether a strategy has a genuine statistical edge, help optimize parameters, and quantify risk. Done poorly — which is far more common — it produces misleading results that inflate confidence and lead to real-money losses.
+## What Is Backtesting?
+
+**Backtesting** is the process of applying a trading strategy's rules to historical market data to simulate how it would have performed. If your strategy says "buy BTC when RSI drops below 30 and sell when RSI rises above 60," backtesting runs those exact rules against years of historical BTC price data and shows you what would have happened: how many trades, what returns, how deep the drawdowns.
+
+Done well, backtesting validates whether a strategy has a genuine statistical edge and gives you the confidence to trade it with real money. Done poorly — which is far more common — backtesting produces misleading results that inflate confidence and set traders up for real-money losses.
+
+**The core value:** Backtesting lets you fail cheaply. Discovering that your strategy would have lost 60% over the past three years costs nothing in backtesting. Discovering it live with real capital is far more painful.
+
+---
+
+## The Backtesting Process
+
+A rigorous backtesting workflow follows these steps:
+
+### Step 1: Obtain Historical Data
+
+Quality data is the foundation. You need:
+- **OHLCV data** (Open, High, Low, Close, Volume) for your target asset at your desired timeframe (1H, 4H, Daily)
+- **Sufficient history:** Ideally 3-5 years covering multiple market phases (bull, bear, sideways)
+- **Clean data:** No gaps, duplicates, or errors
+
+Free data sources:
+- **Binance API:** Historical candle data for any listed pair
+- **CryptoCompare, CoinGecko APIs:** Free historical data
+- **Yahoo Finance:** For comparison with traditional assets
+
+Paid sources: Kaiko, CryptoDataDownload provide clean, professional-grade data.
+
+### Step 2: Implement Strategy Logic
+
+Code your exact entry and exit rules in a backtesting framework. This forces you to be precise — vague rules like "buy when it looks oversold" cannot be coded, which is itself valuable clarity.
+
+Popular backtesting frameworks:
+- **Backtrader (Python):** Mature, flexible, event-driven backtesting
+- **VectorBT (Python):** Fast vectorized backtesting, excellent for optimization
+- **TradingView Pine Script:** Built-in backtesting directly on charts (easier but less flexible)
+- **Freqtrade:** Open-source crypto trading bot with built-in backtesting
+
+### Step 3: Simulate Trades
+
+The backtesting engine processes historical data bar by bar, applying your strategy's conditions to each candle. When entry conditions trigger, it records a simulated buy. When exit conditions trigger (stop loss, take profit, signal reversal), it records the exit and calculates the profit/loss.
+
+### Step 4: Analyze Results
+
+Once the simulation completes, analyze the output metrics to evaluate strategy quality.
+
+---
+
+## Key Metrics to Evaluate a Backtest
+
+### Total Return
+The total percentage gain over the backtest period. Compare this to a benchmark: if your strategy returned 45% while simply holding BTC returned 200%, the strategy significantly underperformed a passive approach.
+
+### Sharpe Ratio
+The **Sharpe ratio** measures risk-adjusted return:
+
+```
+Sharpe Ratio = (Strategy Return - Risk-Free Rate) / Standard Deviation of Returns
+```
+
+- **Sharpe > 1.0:** Good — you're generating meaningful return per unit of risk
+- **Sharpe > 2.0:** Excellent
+- **Sharpe < 0.5:** Poor — not worth the complexity and risk versus passive holding
+
+The Sharpe ratio penalizes strategies with high volatility, even if total returns are decent. A strategy with 80% return but violent swings scores worse than one with 50% return achieved smoothly.
+
+### Maximum Drawdown (MDD)
+**Maximum drawdown** is the largest peak-to-trough decline during the backtesting period.
+
+Example: Strategy peaks at $150,000, then falls to $90,000 before recovering. MDD = (150,000 - 90,000) / 150,000 = **40%**.
+
+Maximum drawdown is the most psychologically important metric. A strategy with a 60% historical drawdown requires asking: "If I were trading this live and watching my account fall 60%, would I keep running the strategy?" Many traders abandon strategies at the worst possible moment — the bottom of a drawdown — and crystallize losses permanently.
+
+**Practical rule:** Only run strategies where you could genuinely tolerate twice the historical maximum drawdown (strategies sometimes breach their historical MDD in live trading).
+
+### Win Rate
+The percentage of trades that are profitable. 
+
+**Important:** Win rate alone is meaningless without knowing the average win size vs. average loss size.
+- **Strategy A:** 70% win rate, average win $100, average loss $300 → **Losing strategy** (70 × $100 - 30 × $300 = -$2,000)
+- **Strategy B:** 40% win rate, average win $300, average loss $100 → **Winning strategy** (40 × $300 - 60 × $100 = +$6,000)
+
+### Profit Factor
+```
+Profit Factor = Total Gross Profit / Total Gross Loss
+```
+
+- **Profit Factor > 1.5:** Good
+- **Profit Factor > 2.0:** Excellent
+- **Profit Factor < 1.0:** Losing strategy
+
+A profit factor of 1.5 means for every $1 lost, the strategy earns $1.50.
+
+---
+
+## Common Backtesting Pitfalls
+
+These errors are extremely common and will produce backtests that look great but fail in live trading.
+
+### 1. Overfitting (Curve-Fitting)
+
+**Overfitting** occurs when you optimize strategy parameters so precisely to past data that the strategy "memorizes" historical noise rather than learning genuine patterns. A strategy with 15 parameters fine-tuned until it achieves perfect returns on past data will almost certainly fail on future data.
+
+**Signs of overfitting:**
+- The strategy only works on a specific asset during a specific period
+- Performance degrades dramatically on even slightly different data
+- The number of parameters is large relative to the number of trades
+
+**Fix:** Use the minimum number of parameters necessary. Test on out-of-sample data (data not used during optimization).
+
+### 2. Look-Ahead Bias
+
+**Look-ahead bias** occurs when your strategy accidentally uses future data to make present decisions — a logical impossibility in live trading.
+
+**Common example:** Using a closing-price indicator to enter a trade at the open of the *same* candle. The strategy "knows" the closing price before it happens. This produces fantastical backtest results that vanish instantly in live trading.
+
+**Fix:** Be rigorous about when data is available. Signals computed from candle N should only be tradeable at the open of candle N+1.
+
+### 3. Survivorship Bias
+
+**Survivorship bias** means only backtesting on assets that survived and are still listed today. You avoid testing on coins that crashed 99% and were delisted — which skews results toward unrealistic optimism.
+
+**Fix:** Include delisted assets in your testing universe where possible. At minimum, acknowledge that your results on current assets represent a best-case scenario.
+
+### 4. Ignoring Fees and Slippage
+
+A strategy that earns $1,000 in gross profit but generates 500 trades might have $1,500 in transaction costs — making it a losing strategy after fees.
+
+**Realistic costs to include:**
+- **Trading fees:** 0.1% maker / 0.1% taker on Binance (or 0.05% with BNB discount)
+- **Slippage:** The difference between expected fill price and actual fill price, typically 0.05-0.2% for liquid assets, higher for illiquid ones
+- **Funding rates:** For perpetual futures strategies, funding costs can significantly erode returns
+
+**Fix:** Always include at least 0.1-0.2% round-trip costs in your backtest. Strategies that only work without fees have no real edge.
+
+### 5. Data Quality Issues
+
+Missing candles, incorrect prices, and exchange-specific anomalies (flash crashes that happened only on one exchange) can create false signals in your backtest.
+
+**Fix:** Validate your data: check for gaps, verify that OHLCV values are internally consistent (High ≥ Open, Close; Low ≤ Open, Close), and compare against a secondary data source.
+
+---
+
+## Walk-Forward Testing: The Gold Standard
+
+**Walk-forward testing** is the most rigorous validation method:
+
+1. **Training period:** Optimize strategy parameters on historical data (e.g., 2019-2021)
+2. **Test period:** Apply those fixed parameters to out-of-sample data (e.g., 2022-2023) — data the strategy has never "seen"
+3. **Advance:** Move the window forward and repeat
+
+A strategy that performs well on out-of-sample data across multiple walk-forward windows has genuine predictive ability. A strategy that only works on the data it was optimized on is overfit.
+
+**Monte Carlo simulation** is another validation technique: randomly permute the order of your trades 1,000 times and measure the distribution of possible outcomes. This shows you the range of realistic returns and drawdowns, not just the single historical path.
+
+---
+
+## From Backtest to Live: The Paper Trading Bridge
+
+Even a properly conducted backtest cannot fully replicate live trading conditions. The final validation step before real money is **paper trading** — running your strategy live with simulated capital.
+
+Paper trading catches issues that backtesting misses:
+- **Execution delays:** Your bot may not fill at the exact price computed by the backtest
+- **API failures:** Exchange downtime, rate limiting, error handling
+- **Real-time data quality:** Live data sometimes differs from clean historical data
+- **Psychological readiness:** Watching simulated drawdowns prepares you for the emotional reality
+
+**The professional path:** Backtest → Optimize → Walk-forward test → Paper trade 1-3 months → Deploy with minimum position size → Scale up gradually.
+
+---
+
+> ## Key Takeaways
+>
+> - **Backtesting** applies strategy rules to historical data to simulate past performance — the cheapest way to discover a strategy is flawed.
+> - The process: **obtain quality OHLCV data → implement rules in a backtesting framework → simulate trades → analyze metrics**.
+> - Essential metrics: **total return vs. benchmark, Sharpe ratio** (>1.0 is good), **maximum drawdown** (can you tolerate 2× this in live trading?), **win rate + average win/loss**, **profit factor** (>1.5 is good).
+> - The five critical pitfalls: **overfitting** (too many parameters tuned to past data), **look-ahead bias** (using future data), **survivorship bias** (only testing assets that survived), **ignoring fees and slippage** (0.1-0.2% per side minimum), and **data quality errors**.
+> - **Walk-forward testing** — optimize on one period, test on a subsequent unseen period — is the gold standard for validating strategy robustness.
+> - **Paper trading** (live simulation) bridges the gap between backtest and real money: catches execution issues, API problems, and emotional reactions to drawdowns.
+> - The professional sequence: backtest → walk-forward test → paper trade 1-3 months → deploy with minimum size → scale gradually.
 
 ## What Backtesting Is (and Is Not)
 
