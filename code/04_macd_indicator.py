@@ -5,162 +5,116 @@ Compute and visualize the MACD (Moving Average Convergence Divergence) indicator
 
 What is MACD?
 -------------
-MACD was developed by Gerald Appel in the late 1970s. It is a trend-following
-momentum indicator that shows the relationship between two exponential moving
-averages of a security's price.
+Developed by Gerald Appel (1979), MACD is a trend-following momentum indicator
+built from the difference between two EMAs.
 
-MACD Components:
-----------------
-  1. MACD Line (fast):
-       MACD = EMA(12) − EMA(26)
-       - Positive MACD → short-term momentum is stronger than long-term (bullish)
-       - Negative MACD → short-term momentum is weaker than long-term (bearish)
+Components
+----------
+  fast_ema   = EMA(12) of closing price
+  slow_ema   = EMA(26) of closing price
+  macd_line  = fast_ema - slow_ema       ← main indicator line
+  signal     = EMA(9) of macd_line       ← trigger line for entries/exits
+  histogram  = macd_line - signal        ← visualizes distance between the two
 
-  2. Signal Line (slow):
-       Signal = EMA(9) applied to the MACD Line
-       - Acts as a trigger for buy/sell signals
-
-  3. Histogram:
-       Histogram = MACD Line − Signal Line
-       - Visualizes the distance between MACD and Signal
-       - Positive bars (above zero) → bullish momentum
-       - Negative bars (below zero) → bearish momentum
-       - Shrinking bars → momentum may be reversing
-
-Trading Signals:
-----------------
-  BULLISH CROSSOVER: MACD Line crosses ABOVE Signal Line → buy signal
-  BEARISH CROSSOVER: MACD Line crosses BELOW Signal Line → sell signal
-  ZERO LINE CROSS:   MACD crosses above 0 → trend turning bullish
-  DIVERGENCE:        Price makes new high but MACD does not → potential reversal
-
-Parameters:
------------
-  (12, 26, 9) are the standard defaults used by most charting platforms.
-  Short-term traders sometimes use (5, 35, 5) for more sensitivity.
+How to read it
+--------------
+  MACD crosses ABOVE signal  → bullish signal (momentum turning up)
+  MACD crosses BELOW signal  → bearish signal (momentum turning down)
+  Histogram above 0          → bulls in control
+  Histogram below 0          → bears in control
 """
 
 import os
 import sys
+import numpy as np
+import ccxt
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 
-def load_data(filepath: str) -> pd.DataFrame:
-    """Load OHLCV CSV and return a DatetimeIndex DataFrame."""
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(
-            f"Data file not found: {filepath}\n"
-            "Please run 01_fetch_prices.py first."
-        )
-    df = pd.read_csv(filepath, parse_dates=['timestamp'])
-    df = df.set_index('timestamp').sort_index()
-    print(f"Loaded {len(df)} rows.")
+CSV_FILE    = 'btc_ohlcv.csv'
+OUTPUT_FILE = 'macd.png'
+
+
+def load_or_fetch(script_dir: str) -> pd.DataFrame:
+    """Return OHLCV DataFrame, loading from CSV if it exists, else fetching from Binance."""
+    csv_path = os.path.join(script_dir, CSV_FILE)
+
+    if os.path.exists(csv_path):
+        print(f"Loading data from {csv_path}")
+        df = pd.read_csv(csv_path, parse_dates=['timestamp'])
+    else:
+        print("CSV not found — fetching from Binance...")
+        exchange = ccxt.binance({'enableRateLimit': True})
+        raw = exchange.fetch_ohlcv('BTC/USDT', timeframe='1d', since=None, limit=365)
+        df = pd.DataFrame(raw, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df.to_csv(csv_path, index=False)
+        print(f"Saved {len(df)} rows to {csv_path}")
+
+    df = df.sort_values('timestamp').reset_index(drop=True)
+    df = df.set_index('timestamp')
+    print(f"Loaded {len(df)} rows  ({df.index[0].date()} → {df.index[-1].date()})")
     return df
 
 
-def compute_macd(
-    series: pd.Series,
-    fast: int = 12,
-    slow: int = 26,
-    signal: int = 9
-) -> pd.DataFrame:
+def compute_macd(df: pd.DataFrame,
+                 fast: int = 12,
+                 slow: int = 26,
+                 signal_period: int = 9) -> pd.DataFrame:
     """
-    Calculate the MACD indicator.
+    Add MACD columns to the DataFrame.
 
     Parameters
     ----------
-    series : pd.Series
-        Series of closing prices.
-    fast   : int
-        Fast EMA period (default 12).
-    slow   : int
-        Slow EMA period (default 26).
-    signal : int
-        Signal line EMA period (default 9).
-
-    Returns
-    -------
-    pd.DataFrame with columns: macd_line, signal_line, histogram
+    df            : DataFrame with a 'close' column
+    fast          : Fast EMA period (default 12)
+    slow          : Slow EMA period (default 26)
+    signal_period : Signal line EMA period (default 9)
     """
-    # --- EMA calculations ---
-    # adjust=False uses the recursive (standard) EMA formula
-    ema_fast = series.ewm(span=fast,   adjust=False).mean()
-    ema_slow = series.ewm(span=slow,   adjust=False).mean()
-
-    # MACD Line: the difference between the two EMAs
-    macd_line = ema_fast - ema_slow
-
-    # Signal Line: EMA of the MACD Line (smoothed trigger)
-    signal_line = macd_line.ewm(span=signal, adjust=False).mean()
-
-    # Histogram: momentum between MACD and its signal
-    histogram = macd_line - signal_line
-
-    return pd.DataFrame({
-        'macd_line':   macd_line,
-        'signal_line': signal_line,
-        'histogram':   histogram,
-    })
+    df['fast_ema']  = df['close'].ewm(span=fast,          adjust=False).mean()
+    df['slow_ema']  = df['close'].ewm(span=slow,          adjust=False).mean()
+    df['macd']      = df['fast_ema'] - df['slow_ema']
+    df['signal']    = df['macd'].ewm(span=signal_period,  adjust=False).mean()
+    df['histogram'] = df['macd'] - df['signal']
+    return df
 
 
-def plot_macd(
-    df: pd.DataFrame,
-    fast: int = 12,
-    slow: int = 26,
-    signal: int = 9,
-    output_path: str = 'macd_chart.png'
-) -> None:
+def plot_macd(df: pd.DataFrame, output_path: str) -> None:
     """
-    Create a two-panel chart: price on top, MACD components on bottom.
-
-    Parameters
-    ----------
-    df          : DataFrame with 'close', 'macd_line', 'signal_line', 'histogram'
-    fast        : Fast EMA period (for labeling)
-    slow        : Slow EMA period (for labeling)
-    signal      : Signal line period (for labeling)
-    output_path : PNG output file path
+    Two-panel chart:
+      Top    — BTC/USDT closing price
+      Bottom — MACD line, signal line, and histogram bars
     """
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 9),
-                                    gridspec_kw={'height_ratios': [2, 1]},
-                                    sharex=True)
+    fig, (ax1, ax2) = plt.subplots(
+        2, 1, figsize=(14, 9),
+        gridspec_kw={'height_ratios': [2, 1]},
+        sharex=True
+    )
 
-    # ---- Panel 1: BTC Price ----
-    ax1.plot(df.index, df['close'], color='steelblue', linewidth=1.5, label='BTC/USDT')
-    ax1.set_title(f'BTC/USDT — Price and MACD({fast},{slow},{signal})',
-                  fontsize=15, fontweight='bold', pad=12)
+    # ---- Top panel: price ----
+    ax1.plot(df.index, df['close'], color='steelblue', linewidth=1.5, label='BTC/USDT Close')
+    ax1.set_title('BTC/USDT — Price and MACD(12, 26, 9)', fontsize=14, fontweight='bold', pad=12)
     ax1.set_ylabel('Price (USDT)', fontsize=12)
     ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'${x:,.0f}'))
     ax1.legend(fontsize=11)
     ax1.grid(True, alpha=0.3, linestyle='--')
 
-    # ---- Panel 2: MACD ----
-    # MACD Line
-    ax2.plot(df.index, df['macd_line'], color='steelblue', linewidth=1.5,
-             label=f'MACD Line (EMA{fast} - EMA{slow})')
+    # ---- Bottom panel: MACD ----
+    ax2.plot(df.index, df['macd'],   color='steelblue',  linewidth=1.5, label='MACD Line')
+    ax2.plot(df.index, df['signal'], color='darkorange',  linewidth=1.5, label='Signal Line')
 
-    # Signal Line
-    ax2.plot(df.index, df['signal_line'], color='darkorange', linewidth=1.5,
-             label=f'Signal Line (EMA{signal} of MACD)')
+    # Histogram: green bars when positive (bullish), red when negative (bearish)
+    colors = np.where(df['histogram'] >= 0, 'green', 'red')
+    ax2.bar(df.index, df['histogram'], color=colors, alpha=0.6, width=0.8, label='Histogram')
 
-    # Histogram: color each bar individually based on sign
-    # Positive bars (bullish momentum) = green; Negative bars = red
-    hist = df['histogram']
-    colors = ['limegreen' if v >= 0 else 'tomato' for v in hist]
-    ax2.bar(df.index, hist, color=colors, alpha=0.6, width=1.0,
-            label='Histogram (MACD − Signal)')
-
-    # Zero line reference
-    ax2.axhline(y=0, color='black', linestyle='--', linewidth=0.8, alpha=0.7)
-
+    ax2.axhline(0, color='black', linewidth=0.8, alpha=0.5)
     ax2.set_ylabel('MACD', fontsize=12)
     ax2.set_xlabel('Date', fontsize=12)
     ax2.legend(fontsize=10, loc='upper left')
     ax2.grid(True, alpha=0.3, linestyle='--')
 
-    # Format shared x-axis dates
     ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
     ax2.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
     fig.autofmt_xdate(rotation=30)
@@ -171,74 +125,25 @@ def plot_macd(
     print(f"Chart saved to: {output_path}")
 
 
-def find_last_crossover(df: pd.DataFrame) -> None:
-    """
-    Detect and print the most recent MACD crossover signal.
-
-    A crossover occurs when the MACD Line crosses the Signal Line.
-    We detect this by checking where the sign of (macd - signal) changes.
-    """
-    # Sign of histogram: +1 when MACD > Signal, -1 when MACD < Signal
-    sign = df['histogram'].apply(lambda x: 1 if x >= 0 else -1)
-
-    # A crossover is where the sign flips (previous sign != current sign)
-    crossovers = sign[sign != sign.shift(1)].dropna()
-
-    if crossovers.empty:
-        print("No MACD crossovers found in the dataset.")
-        return
-
-    # Most recent crossover
-    last_cross_date = crossovers.index[-1]
-    last_cross_type = crossovers.iloc[-1]
-    price_at_cross  = df.loc[last_cross_date, 'close']
-    macd_at_cross   = df.loc[last_cross_date, 'macd_line']
-
-    print("\n" + "=" * 55)
-    print("MACD CROSSOVER SIGNAL")
-    print("=" * 55)
-    print(f"  Most recent crossover: {last_cross_date.date()}")
-    if last_cross_type == 1:
-        print("  Type   : BULLISH — MACD Line crossed ABOVE Signal Line")
-        print("  Signal : BUY / Look for long opportunities")
-    else:
-        print("  Type   : BEARISH — MACD Line crossed BELOW Signal Line")
-        print("  Signal : SELL / Look for short opportunities")
-    print(f"  Price at crossover : ${price_at_cross:,.2f}")
-    print(f"  MACD at crossover  : {macd_at_cross:.2f}")
-
-    # Show current MACD state
-    latest = df.dropna(subset=['macd_line', 'signal_line']).iloc[-1]
-    print(f"\n  Current MACD Line   : {latest['macd_line']:.2f}")
-    print(f"  Current Signal Line : {latest['signal_line']:.2f}")
-    print(f"  Current Histogram   : {latest['histogram']:.2f}")
-
-    if latest['macd_line'] > latest['signal_line']:
-        print("  Current State: MACD above Signal → Bullish bias")
-    else:
-        print("  Current State: MACD below Signal → Bearish bias")
-    print("=" * 55)
-
-
 if __name__ == '__main__':
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path   = os.path.join(script_dir, 'btc_usdt_daily.csv')
-    chart_path = os.path.join(script_dir, 'macd_chart.png')
+    script_dir  = os.path.dirname(os.path.abspath(__file__))
+    output_path = os.path.join(script_dir, OUTPUT_FILE)
 
     try:
-        df = load_data(csv_path)
+        df = load_or_fetch(script_dir)
+        df = compute_macd(df, fast=12, slow=26, signal_period=9)
 
-        # Compute MACD and merge results back into main DataFrame
-        macd_df = compute_macd(df['close'], fast=12, slow=26, signal=9)
-        df = pd.concat([df, macd_df], axis=1)
+        last = df.dropna(subset=['macd', 'signal']).iloc[-1]
+        print(f"\nLatest MACD   : {last['macd']:.2f}")
+        print(f"Latest Signal : {last['signal']:.2f}")
+        print(f"Histogram     : {last['histogram']:.2f}  "
+              f"({'Bullish' if last['histogram'] >= 0 else 'Bearish'})")
 
-        plot_macd(df, fast=12, slow=26, signal=9, output_path=chart_path)
-        find_last_crossover(df)
+        plot_macd(df, output_path)
 
-    except FileNotFoundError as e:
-        print(f"[Error] {e}")
+    except ccxt.NetworkError as e:
+        print(f"[Network Error] {e}")
         sys.exit(1)
-
     except Exception as e:
-        print(f"[Unexpected Error] {type(e).__name__}: {e}")
+        print(f"[{type(e).__name__}] {e}")
         sys.exit(1)
